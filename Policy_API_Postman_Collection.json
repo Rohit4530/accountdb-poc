@@ -1,0 +1,266 @@
+{
+  "info": {
+    "name": "Policy API - Spring Boot 4.0",
+    "description": "Complete CRUD API for Policy Management with JWT Authentication",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Sign In (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/auth/signin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            }
+          },
+          "description": "Login as admin to get JWT token. Copy the token value and set it as {{jwtToken}} variable."
+        },
+        {
+          "name": "Sign In (Moderator)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/auth/signin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"moderator\",\n  \"password\": \"mod123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Sign In (User)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/auth/signin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"user\",\n  \"password\": \"user123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Sign Up (Create New User)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/auth/signup",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newuser\",\n  \"email\": \"newuser@test.com\",\n  \"password\": \"password123\",\n  \"role\": [\"user\"]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Policy CRUD Operations",
+      "item": [
+        {
+          "name": "Get All Policies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwtToken}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "url": "{{baseUrl}}/api/policies"
+          }
+        },
+        {
+          "name": "Get Policy by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwtToken}}"}
+            ],
+            "url": "{{baseUrl}}/api/policies/1"
+          }
+        },
+        {
+          "name": "Get Policy by Policy Number",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwtToken}}"}
+            ],
+            "url": "{{baseUrl}}/api/policies/number/POL001"
+          }
+        },
+        {
+          "name": "Get Policy by External Number",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwtToken}}"}
+            ],
+            "url": "{{baseUrl}}/api/policies/ext-number/EXT-2024-001"
+          }
+        },
+        {
+          "name": "Get Policy by NI Number",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwtToken}}"}
+            ],
+            "url": "{{baseUrl}}/api/policies/ni/AB123456C"
+          }
+        },
+        {
+          "name": "Check Policy Exists by Number",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwtToken}}"}
+            ],
+            "url": "{{baseUrl}}/api/policies/exists/number/POL001"
+          }
+        },
+        {
+          "name": "Check Policy Exists by NI",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwtToken}}"}
+            ],
+            "url": "{{baseUrl}}/api/policies/exists/ni/AB123456C"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Create Policy (Admin/Moderator Only)",
+      "item": [
+        {
+          "name": "Create New Policy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwtToken}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "url": "{{baseUrl}}/api/policies",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"policyNumber\": \"POL005\",\n  \"extPolicyNumber\": \"EXT-2024-005\",\n  \"niNumber\": \"IJ567890K\",\n  \"title\": \"Mr\",\n  \"foreName\": \"Michael\",\n  \"surName\": \"Brown\",\n  \"addressLine1\": \"555 Cedar Lane\",\n  \"addressLine2\": \"Glasgow\",\n  \"addressLine3\": \"Scotland\",\n  \"addressLine4\": \"United Kingdom\",\n  \"postCode\": \"G1 5GH\",\n  \"product\": \"Home Insurance\",\n  \"version\": 1,\n  \"policyStatus\": \"ACTIVE\",\n  \"polStatusDesc\": \"New home insurance policy\",\n  \"polSuspended\": \"N\",\n  \"groupChild\": \"GRP005\",\n  \"groupChildAgency\": \"Child Agency Glasgow\",\n  \"policyAgency\": \"Glasgow Central Agency\",\n  \"groupParent\": \"Home Insurance Group\",\n  \"polStartDate\": \"2024-04-01\",\n  \"polNprMaturityDate\": \"2034-04-01\",\n  \"prMaturityDate\": \"2034-04-01\",\n  \"nprOrigMatDte\": \"2034-04-01\",\n  \"prOrigMatDte\": \"2034-04-01\",\n  \"renewalDate\": \"2025-04-01\",\n  \"selfEmployed\": \"N\",\n  \"paymentFreq\": \"Monthly\",\n  \"phPaymentMethod\": \"Direct Debit\",\n  \"accountNumber\": \"98765432\",\n  \"sortCode\": \"90-00-04\",\n  \"employeeRegular\": \"200.00\",\n  \"selfEmpRegular\": \"0.00\",\n  \"thirdPartyRegular\": \"0.00\",\n  \"prIndex\": \"INDEX_E\",\n  \"personalSingle\": \"0.00\",\n  \"personalVariable\": \"0.00\",\n  \"personalWaiver\": \"0.00\",\n  \"employerRegular\": \"0.00\",\n  \"employerSingle\": \"0.00\",\n  \"employerVariable\": \"0.00\",\n  \"employerWaiver\": \"0.00\",\n  \"ppStandaloneTi\": \"NO\",\n  \"ppIntegratedTi\": \"NO\",\n  \"protectedRights\": \"PR_NO\",\n  \"nico\": \"NICO345\",\n  \"transferIn\": \"0.00\",\n  \"transferInInternal\": \"N\",\n  \"prTransferIn\": \"0.00\",\n  \"prTransferInInternal\": \"N\",\n  \"pcSgr\": \"0.00\",\n  \"pcSgrInternal\": \"N\",\n  \"pcNonSgr\": \"0.00\",\n  \"pcNonSgrInternal\": \"N\",\n  \"standalonePhiWaiver\": \"NO\",\n  \"drawdown\": \"NO\",\n  \"incrementProcessed\": \"NO\",\n  \"decrementProcessed\": \"NO\",\n  \"premiumHolidayStarted\": \"NO\",\n  \"premiumHolidayEnded\": \"NO\",\n  \"switchProcessed\": \"NO\",\n  \"autoswitchProcessed\": \"NO\",\n  \"redirection\": \"NO\",\n  \"pafFund\": \"FUND_E\",\n  \"wpFund\": \"WP_005\",\n  \"nonPafWpFund\": \"NON_PAF_005\",\n  \"externalFund\": \"EXT_005\",\n  \"phasedSwi\": \"NO\",\n  \"sppLoyaltyBonus\": \"BONUS_150\",\n  \"lfr\": \"LFR_005\",\n  \"alfr\": \"ALFR_005\",\n  \"fbc\": \"FBC_005\",\n  \"cafcaRdr\": \"CAFCA_005\",\n  \"dateOfBirth\": \"1988-07-12\",\n  \"sex\": \"M\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Update Policy (Admin/Moderator Only)",
+      "item": [
+        {
+          "name": "Update Policy Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwtToken}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "url": "{{baseUrl}}/api/policies/1",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"policyStatus\": \"SUSPENDED\",\n  \"polStatusDesc\": \"Policy manually suspended for review\",\n  \"polSuspended\": \"Y\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Delete Policy (Admin Only)",
+      "item": [
+        {
+          "name": "Delete Policy",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwtToken}}"}
+            ],
+            "url": "{{baseUrl}}/api/policies/5"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Error Testing",
+      "item": [
+        {
+          "name": "Policy Not Found (404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwtToken}}"}
+            ],
+            "url": "{{baseUrl}}/api/policies/999"
+          }
+        },
+        {
+          "name": "Duplicate Policy (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwtToken}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "url": "{{baseUrl}}/api/policies",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"policyNumber\": \"POL001\",\n  \"foreName\": \"Test\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Unauthorized (401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/policies"
+          }
+        },
+        {
+          "name": "Forbidden - User Trying to Create (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{userToken}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "url": "{{baseUrl}}/api/policies",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"policyNumber\": \"POL006\",\n  \"foreName\": \"Test\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "jwtToken",
+      "value": "",
+      "type": "string",
+      "description": "Set this after signing in as admin/moderator"
+    },
+    {
+      "key": "userToken",
+      "value": "",
+      "type": "string",
+      "description": "Set this after signing in as regular user"
+    }
+  ]
+}

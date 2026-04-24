@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Policy Explorer</title>
+    <style>
+        :root {
+            --page-bg: #f4efe7;
+            --page-bg-deep: #e4dccd;
+            --ink: #1f1d1a;
+            --ink-soft: #5f584c;
+            --panel: rgba(255, 250, 244, 0.9);
+            --panel-strong: #fff9f1;
+            --border: rgba(99, 82, 54, 0.16);
+            --accent: #0c6c64;
+            --accent-dark: #084e49;
+            --accent-soft: rgba(12, 108, 100, 0.14);
+            --highlight: #d1823d;
+            --danger: #9d2c2c;
+            --danger-soft: rgba(157, 44, 44, 0.1);
+            --shadow: 0 20px 60px rgba(49, 38, 19, 0.12);
+            --radius-xl: 28px;
+            --radius-lg: 20px;
+            --radius-md: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Trebuchet MS", "Lucida Sans Unicode", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(12, 108, 100, 0.18), transparent 30%),
+                radial-gradient(circle at top right, rgba(209, 130, 61, 0.18), transparent 25%),
+                linear-gradient(180deg, var(--page-bg) 0%, var(--page-bg-deep) 100%);
+        }
+
+        h1, h2, h3, h4, p {
+            margin: 0;
+        }
+
+        button, input, select {
+            font: inherit;
+        }
+
+        .page-shell {
+            width: min(1180px, calc(100vw - 32px));
+            margin: 0 auto;
+            padding: 36px 0 52px;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 20px;
+            align-items: end;
+            margin-bottom: 24px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 249, 241, 0.82);
+            border: 1px solid var(--border);
+            color: var(--accent-dark);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-size: 0.76rem;
+            font-weight: 700;
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--highlight), var(--accent));
+        }
+
+        .hero h1 {
+            font-family: Cambria, Georgia, serif;
+            font-size: clamp(2.1rem, 4vw, 3.5rem);
+            line-height: 1.02;
+            max-width: 11ch;
+        }
+
+        .hero-copy {
+            max-width: 62ch;
+            margin-top: 14px;
+            color: var(--ink-soft);
+            line-height: 1.65;
+        }
+
+        .session-pill {
+            padding: 14px 18px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            color: var(--ink-soft);
+            text-align: right;
+            min-width: 220px;
+        }
+
+        .session-pill strong {
+            display: block;
+            color: var(--ink);
+            margin-bottom: 4px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(18px);
+        }
+
+        .auth-panel,
+        .explorer-panel {
+            padding: 28px;
+        }
+
+        .auth-panel {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .auth-copy {
+            padding: 10px 10px 10px 4px;
+        }
+
+        .auth-copy h2,
+        .explorer-headline h2 {
+            font-family: Cambria, Georgia, serif;
+            font-size: 1.9rem;
+            margin-bottom: 12px;
+        }
+
+        .auth-copy p,
+        .explorer-headline p {
+            color: var(--ink-soft);
+            line-height: 1.7;
+        }
+
+        .auth-card {
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 248, 238, 0.84));
+            border: 1px solid rgba(99, 82, 54, 0.12);
+        }
+
+        .auth-card h3 {
+            margin-bottom: 6px;
+        }
+
+        .auth-card p {
+            color: var(--ink-soft);
+            margin-bottom: 18px;
+        }
+
+        .auth-mode-toggle {
+            display: inline-grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            width: 100%;
+            margin-bottom: 18px;
+            padding: 6px;
+            border-radius: 999px;
+            background: rgba(244, 239, 231, 0.9);
+            border: 1px solid rgba(99, 82, 54, 0.12);
+        }
+
+        .auth-mode-button {
+            appearance: none;
+            border: none;
+            border-radius: 999px;
+            padding: 10px 12px;
+            background: transparent;
+            color: var(--ink-soft);
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+
+        .auth-mode-button.active {
+            background: #fff;
+            color: var(--accent-dark);
+            box-shadow: 0 10px 18px rgba(49, 38, 19, 0.08);
+        }
+
+        .login-form,
+        .filter-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .auth-form.hidden {
+            display: none;
+        }
+
+        .filter-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            margin: 24px 0 12px;
+        }
+
+        label span {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: var(--ink-soft);
+        }
+
+        .input,
+        .select {
+            width: 100%;
+            border: 1px solid rgba(99, 82, 54, 0.18);
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.82);
+            padding: 13px 14px;
+            color: var(--ink);
+            transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .input:focus,
+        .select:focus {
+            outline: none;
+            border-color: rgba(12, 108, 100, 0.38);
+            box-shadow: 0 0 0 4px rgba(12, 108, 100, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .button-row,
+        .explorer-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .button,
+        .ghost-button {
+            appearance: none;
+            border: none;
+            border-radius: 999px;
+            padding: 12px 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        }
+
+        .button:hover,
+        .ghost-button:hover {
+            transform: translateY(-1px);
+        }
+
+        .button:disabled,
+        .ghost-button:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .button {
+            color: #fff;
+            background: linear-gradient(135deg, var(--accent), #13867d);
+            box-shadow: 0 14px 26px rgba(12, 108, 100, 0.24);
+        }
+
+        .ghost-button {
+            color: var(--accent-dark);
+            background: rgba(12, 108, 100, 0.08);
+            border: 1px solid rgba(12, 108, 100, 0.12);
+        }
+
+        .inline-note {
+            color: var(--ink-soft);
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+
+        .inline-note strong {
+            color: var(--ink);
+        }
+
+        .message {
+            margin-top: 16px;
+            padding: 12px 14px;
+            border-radius: var(--radius-md);
+            font-size: 0.94rem;
+            line-height: 1.5;
+            display: none;
+        }
+
+        .message.visible {
+            display: block;
+        }
+
+        .message.error {
+            background: var(--danger-soft);
+            color: var(--danger);
+        }
+
+        .message.info {
+            background: rgba(12, 108, 100, 0.08);
+            color: var(--accent-dark);
+        }
+
+        .explorer-headline {
+            max-width: 72ch;
+        }
+
+        .summary-strip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding-top: 8px;
+        }
+
+        .summary-strip p {
+            color: var(--ink-soft);
+        }
+
+        .results {
+            display: grid;
+            gap: 16px;
+            margin-top: 22px;
+        }
+
+        .policy-card {
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(99, 82, 54, 0.14);
+        }
+
+        .policy-card__top {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .policy-card__top h3 {
+            font-size: 1.3rem;
+            margin: 6px 0 8px;
+        }
+
+        .policy-number {
+            color: var(--accent-dark);
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        .policy-subtitle {
+            color: var(--ink-soft);
+            line-height: 1.6;
+        }
+
+        .chip-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 0.84rem;
+            font-weight: 700;
+        }
+
+        .chip.type {
+            background: rgba(12, 108, 100, 0.1);
+            color: var(--accent-dark);
+        }
+
+        .chip.status {
+            background: rgba(209, 130, 61, 0.15);
+            color: #8d4d15;
+        }
+
+        .chip.meta {
+            background: rgba(34, 34, 34, 0.06);
+            color: var(--ink-soft);
+        }
+
+        .summary-grid,
+        .detail-grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            margin-top: 16px;
+        }
+
+        .summary-item,
+        .detail-item {
+            padding: 12px 14px;
+            border-radius: 16px;
+            background: rgba(244, 239, 231, 0.76);
+            border: 1px solid rgba(99, 82, 54, 0.1);
+        }
+
+        .summary-item span,
+        .detail-item span {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--ink-soft);
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .summary-item strong,
+        .detail-item strong {
+            display: block;
+            line-height: 1.45;
+        }
+
+        .detail-panel {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(99, 82, 54, 0.14);
+            display: none;
+        }
+
+        .detail-panel.visible {
+            display: block;
+        }
+
+        .detail-section + .detail-section {
+            margin-top: 16px;
+        }
+
+        .detail-section h4 {
+            margin-bottom: 10px;
+            color: var(--accent-dark);
+        }
+
+        .empty-state {
+            padding: 34px 20px;
+            text-align: center;
+            border-radius: var(--radius-lg);
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px dashed rgba(99, 82, 54, 0.2);
+            color: var(--ink-soft);
+            line-height: 1.7;
+        }
+
+        .loading-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .loading-pill::before {
+            content: "";
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            border: 2px solid rgba(12, 108, 100, 0.2);
+            border-top-color: var(--accent);
+            animation: spin 0.8s linear infinite;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 920px) {
+            .hero,
+            .auth-panel,
+            .policy-card__top {
+                grid-template-columns: 1fr;
+            }
+
+            .session-pill {
+                text-align: left;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .page-shell {
+                width: min(100vw - 20px, 1180px);
+                padding-top: 22px;
+            }
+
+            .auth-panel,
+            .explorer-panel {
+                padding: 20px;
+            }
+
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-row,
+            .explorer-toolbar,
+            .summary-strip {
+                align-items: stretch;
+            }
+
+            .button,
+            .ghost-button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="page-shell">
+    <header class="hero">
+        <div>
+            <p class="eyebrow">Policy Workspace</p>
+            <h1>Explore policies by type and status</h1>
+            <p class="hero-copy">
+                This screen reads policy type values from the <strong>PRODUCT</strong> column and status values
+                from <strong>PRODUCTSTATUS</strong>. Sign in with any user who has policy read access, choose a
+                policy type, refine by status, and expand a result for a concise policy brief.
+            </p>
+        </div>
+        <aside class="session-pill" id="sessionPill">
+            <strong>Signed out</strong>
+            Use your JWT-enabled app account to browse policies.
+        </aside>
+    </header>
+
+    <section class="panel auth-panel" id="authPanel">
+        <div class="auth-copy">
+            <h2>JWT login for the explorer</h2>
+            <p>
+                The page calls the existing <code>/api/auth/signin</code> endpoint, keeps the token in browser
+                storage, and uses it for all policy requests. That keeps the UI aligned with your deployed
+                JWT API instead of bypassing it.
+            </p>
+        </div>
+        <div class="auth-card">
+            <h3 id="authCardTitle">Sign in</h3>
+            <p id="authCardDescription">Use a <code>ROLE_USER</code>, <code>ROLE_MODERATOR</code>, or <code>ROLE_ADMIN</code> account.</p>
+
+            <div class="auth-mode-toggle" role="tablist" aria-label="Authentication mode">
+                <button id="showLoginButton" class="auth-mode-button active" type="button" role="tab" aria-selected="true">Sign in</button>
+                <button id="showSignupButton" class="auth-mode-button" type="button" role="tab" aria-selected="false">Sign up</button>
+            </div>
+
+            <form id="loginForm" class="login-form auth-form">
+                <label>
+                    <span>Username</span>
+                    <input id="username" class="input" name="username" type="text" autocomplete="username" required>
+                </label>
+                <label>
+                    <span>Password</span>
+                    <input id="password" class="input" name="password" type="password" autocomplete="current-password" required>
+                </label>
+                <div class="button-row">
+                    <button type="submit" class="button" id="loginButton">Sign in</button>
+                    <span class="inline-note">The token is only used by this page in your browser.</span>
+                </div>
+            </form>
+
+            <form id="signupForm" class="login-form auth-form hidden">
+                <label>
+                    <span>Username</span>
+                    <input id="signupUsername" class="input" name="signupUsername" type="text" autocomplete="username" required>
+                </label>
+                <label>
+                    <span>Email</span>
+                    <input id="signupEmail" class="input" name="signupEmail" type="email" autocomplete="email" required>
+                </label>
+                <label>
+                    <span>Password</span>
+                    <input id="signupPassword" class="input" name="signupPassword" type="password" autocomplete="new-password" required>
+                </label>
+                <label>
+                    <span>Confirm password</span>
+                    <input id="signupConfirmPassword" class="input" name="signupConfirmPassword" type="password" autocomplete="new-password" required>
+                </label>
+                <div class="button-row">
+                    <button type="submit" class="button" id="signupButton">Create account</button>
+                    <span class="inline-note"><strong>Standard signup</strong> creates a <code>ROLE_USER</code> account.</span>
+                </div>
+            </form>
+            <div id="authMessage" class="message" role="status" aria-live="polite"></div>
+        </div>
+    </section>
+
+    <section class="panel explorer-panel hidden" id="explorerPanel">
+        <div class="explorer-toolbar">
+            <div class="explorer-headline">
+                <h2>Policy explorer</h2>
+                <p>
+                    Pick a policy type first. The status dropdown updates from the database for that selected type,
+                    and the result list refreshes automatically.
+                </p>
+            </div>
+            <button id="logoutButton" class="ghost-button" type="button">Sign out</button>
+        </div>
+
+        <div class="filter-grid">
+            <label>
+                <span>Policy type</span>
+                <select id="policyTypeSelect" class="select" disabled>
+                    <option value="">Loading policy types...</option>
+                </select>
+            </label>
+            <label>
+                <span>Policy status</span>
+                <select id="policyStatusSelect" class="select" disabled>
+                    <option value="">Select a policy type first</option>
+                </select>
+            </label>
+        </div>
+
+        <div class="summary-strip">
+            <p id="filterSummary">Sign in to load policies.</p>
+            <button id="refreshButton" class="ghost-button" type="button" disabled>Refresh results</button>
+        </div>
+
+        <div id="explorerMessage" class="message" role="status" aria-live="polite"></div>
+
+        <section id="results" class="results">
+            <div class="empty-state">
+                Sign in to load available policy types from your MSSQL policy table.
+            </div>
+        </section>
+    </section>
+</main>
+
+<script>
+    // API Configuration - Automatically set by Terraform during deployment
+    const API_BASE_URL = "CLOUDFRONT_URL_PLACEHOLDER";
+
+    const state = {
+        session: null,
+        policyDetails: new Map(),
+        authMode: "login"
+    };
+
+    function getApiUrl(path) {
+        return API_BASE_URL ? API_BASE_URL + path : path;
+    }
+
+    const elements = {
+        authPanel: document.getElementById("authPanel"),
+        explorerPanel: document.getElementById("explorerPanel"),
+        sessionPill: document.getElementById("sessionPill"),
+        authMessage: document.getElementById("authMessage"),
+        explorerMessage: document.getElementById("explorerMessage"),
+        authCardTitle: document.getElementById("authCardTitle"),
+        authCardDescription: document.getElementById("authCardDescription"),
+        showLoginButton: document.getElementById("showLoginButton"),
+        showSignupButton: document.getElementById("showSignupButton"),
+        loginForm: document.getElementById("loginForm"),
+        loginButton: document.getElementById("loginButton"),
+        username: document.getElementById("username"),
+        password: document.getElementById("password"),
+        signupForm: document.getElementById("signupForm"),
+        signupButton: document.getElementById("signupButton"),
+        signupUsername: document.getElementById("signupUsername"),
+        signupEmail: document.getElementById("signupEmail"),
+        signupPassword: document.getElementById("signupPassword"),
+        signupConfirmPassword: document.getElementById("signupConfirmPassword"),
+        logoutButton: document.getElementById("logoutButton"),
+        policyTypeSelect: document.getElementById("policyTypeSelect"),
+        policyStatusSelect: document.getElementById("policyStatusSelect"),
+        filterSummary: document.getElementById("filterSummary"),
+        refreshButton: document.getElementById("refreshButton"),
+        results: document.getElementById("results")
+    };
+
+    document.addEventListener("DOMContentLoaded", init);
+
+    function init() {
+        elements.showLoginButton.addEventListener("click", () => setAuthMode("login"));
+        elements.showSignupButton.addEventListener("click", () => setAuthMode("signup"));
+        elements.loginForm.addEventListener("submit", handleLogin);
+        elements.signupForm.addEventListener("submit", handleSignup);
+        elements.logoutButton.addEventListener("click", handleLogout);
+        elements.policyTypeSelect.addEventListener("change", handlePolicyTypeChange);
+        elements.policyStatusSelect.addEventListener("change", handlePolicyStatusChange);
+        elements.refreshButton.addEventListener("click", refreshPolicies);
+        elements.results.addEventListener("click", handleResultsClick);
+
+        const storedSession = readStoredSession();
+        if (storedSession) {
+            state.session = storedSession;
+            updateSessionUi();
+            hydrateExplorer();
+            return;
+        }
+
+        updateSessionUi();
+        setAuthMode("login");
+    }
+
+    async function handleLogin(event) {
+        event.preventDefault();
+        setMessage(elements.authMessage, "Signing in...", "info");
+        setLoading(elements.loginButton, true, "Signing in...");
+
+        try {
+            const response = await fetch(getApiUrl("/api/auth/signin"), {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    username: elements.username.value.trim(),
+                    password: elements.password.value
+                })
+            });
+
+            const payload = await readPayload(response);
+            if (!response.ok) {
+                throw new Error(extractErrorMessage(payload, "Sign in failed"));
+            }
+
+            state.session = {
+                token: payload.accessToken,
+                username: payload.username,
+                roles: Array.isArray(payload.roles) ? payload.roles : []
+            };
+
+            storeSession(state.session);
+            elements.loginForm.reset();
+            setMessage(elements.authMessage, "Signed in successfully. Loading policies...", "info");
+            updateSessionUi();
+            await hydrateExplorer();
+        } catch (error) {
+            setMessage(elements.authMessage, error.message, "error");
+        } finally {
+            setLoading(elements.loginButton, false, "Sign in");
+        }
+    }
+
+    async function handleSignup(event) {
+        event.preventDefault();
+
+        const username = elements.signupUsername.value.trim();
+        const email = elements.signupEmail.value.trim();
+        const password = elements.signupPassword.value;
+        const confirmPassword = elements.signupConfirmPassword.value;
+
+        if (password !== confirmPassword) {
+            setMessage(elements.authMessage, "Passwords do not match.", "error");
+            return;
+        }
+
+        setMessage(elements.authMessage, "Creating account...", "info");
+        setLoading(elements.signupButton, true, "Creating account...");
+
+        try {
+            const response = await fetch(getApiUrl("/api/auth/signup"), {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    username,
+                    email,
+                    password
+                })
+            });
+
+            const payload = await readPayload(response);
+            if (!response.ok) {
+                throw new Error(extractErrorMessage(payload, "Sign up failed"));
+            }
+
+            elements.signupForm.reset();
+            elements.username.value = username;
+            setAuthMode("login");
+            setMessage(elements.authMessage, "Account created. Sign in with your new credentials.", "info");
+        } catch (error) {
+            setMessage(elements.authMessage, error.message, "error");
+        } finally {
+            setLoading(elements.signupButton, false, "Create account");
+        }
+    }
+
+    function handleLogout() {
+        clearSession();
+        setMessage(elements.authMessage, "You have been signed out.", "info");
+    }
+
+    function setAuthMode(mode) {
+        state.authMode = mode;
+        const isLoginMode = mode === "login";
+
+        elements.showLoginButton.classList.toggle("active", isLoginMode);
+        elements.showLoginButton.setAttribute("aria-selected", String(isLoginMode));
+        elements.showSignupButton.classList.toggle("active", !isLoginMode);
+        elements.showSignupButton.setAttribute("aria-selected", String(!isLoginMode));
+
+        elements.loginForm.classList.toggle("hidden", !isLoginMode);
+        elements.signupForm.classList.toggle("hidden", isLoginMode);
+
+        elements.authCardTitle.textContent = isLoginMode ? "Sign in" : "Create an account";
+        elements.authCardDescription.innerHTML = isLoginMode
+            ? "Use a <code>ROLE_USER</code>, <code>ROLE_MODERATOR</code>, or <code>ROLE_ADMIN</code> account."
+            : "Sign up from this page to create a standard <code>ROLE_USER</code> account for the explorer.";
+
+        clearMessage(elements.authMessage);
+    }
+
+    async function handlePolicyTypeChange() {
+        const policyType = elements.policyTypeSelect.value;
+        state.policyDetails.clear();
+
+        clearMessage(elements.explorerMessage);
+        resetStatusDropdown();
+
+        if (!policyType) {
+            elements.refreshButton.disabled = true;
+            elements.filterSummary.textContent = "Choose a policy type to see matching policies.";
+            renderEmptyState("Choose a policy type to see matching policies.");
+            return;
+        }
+
+        try {
+            await loadPolicyStatuses(policyType);
+            await refreshPolicies();
+        } catch (error) {
+            setMessage(elements.explorerMessage, error.message, "error");
+        }
+    }
+
+    async function handlePolicyStatusChange() {
+        await refreshPolicies();
+    }
+
+    async function hydrateExplorer() {
+        clearMessage(elements.explorerMessage);
+        elements.policyTypeSelect.disabled = true;
+        elements.policyStatusSelect.disabled = true;
+        elements.refreshButton.disabled = true;
+        elements.filterSummary.textContent = "Loading policy types...";
+        renderEmptyState('<span class="loading-pill">Loading available policy types</span>');
+
+        try {
+            const policyTypes = await apiGet(getApiUrl("/api/policies/policy-types"));
+            populateSelect(elements.policyTypeSelect, policyTypes, "Choose a policy type");
+            elements.policyTypeSelect.disabled = false;
+            elements.filterSummary.textContent = "Choose a policy type to load the matching statuses and results.";
+            renderEmptyState("Choose a policy type to load policies from your MSSQL database.");
+            resetStatusDropdown();
+        } catch (error) {
+            setMessage(elements.explorerMessage, error.message, "error");
+            renderEmptyState("The explorer could not load policy types. Check the JWT session and database connection.");
+        }
+    }
+
+    async function loadPolicyStatuses(policyType) {
+        elements.policyStatusSelect.disabled = true;
+        populateSelect(elements.policyStatusSelect, [], "Loading statuses...");
+
+        const statuses = await apiGet(`/api/policies/policy-statuses?policyType=${encodeURIComponent(policyType)}`);
+        populateSelect(elements.policyStatusSelect, statuses, "All statuses", true);
+        elements.policyStatusSelect.disabled = false;
+        elements.refreshButton.disabled = false;
+    }
+
+    async function refreshPolicies() {
+        const policyType = elements.policyTypeSelect.value;
+        if (!policyType) {
+            renderEmptyState("Choose a policy type to load policies.");
+            return;
+        }
+
+        const policyStatus = elements.policyStatusSelect.value;
+        const query = new URLSearchParams({ policyType });
+
+        if (policyStatus) {
+            query.set("policyStatus", policyStatus);
+        }
+
+        clearMessage(elements.explorerMessage);
+        elements.refreshButton.disabled = true;
+        elements.filterSummary.textContent = "Loading policies...";
+        renderEmptyState('<span class="loading-pill">Loading policies</span>');
+
+        try {
+            const policies = await apiGet(getApiUrl(`/api/policies/search?${query.toString()}`));
+            renderPolicyResults(policies, policyType, policyStatus);
+        } catch (error) {
+            setMessage(elements.explorerMessage, error.message, "error");
+            renderEmptyState("The policy list could not be loaded.");
+        } finally {
+            elements.refreshButton.disabled = false;
+        }
+    }
+
+    async function handleResultsClick(event) {
+        const button = event.target.closest("[data-action='toggle-details']");
+        if (!button) {
+            return;
+        }
+
+        const policyId = button.dataset.policyId;
+        const detailPanel = document.getElementById(`policy-detail-${policyId}`);
+        const isExpanded = button.dataset.expanded === "true";
+
+        if (isExpanded) {
+            button.dataset.expanded = "false";
+            button.textContent = "Expand brief";
+            detailPanel.classList.remove("visible");
+            return;
+        }
+
+        button.dataset.expanded = "true";
+        button.textContent = "Collapse brief";
+        detailPanel.classList.add("visible");
+
+        if (state.policyDetails.has(policyId)) {
+            detailPanel.innerHTML = renderPolicyBrief(state.policyDetails.get(policyId));
+            return;
+        }
+
+        detailPanel.innerHTML = '<div class="empty-state"><span class="loading-pill">Loading policy brief</span></div>';
+
+        try {
+            const policy = await apiGet(getApiUrl(`/api/policies/${policyId}`));
+            state.policyDetails.set(policyId, policy);
+            detailPanel.innerHTML = renderPolicyBrief(policy);
+        } catch (error) {
+            detailPanel.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+        }
+    }
+
+    async function apiGet(url) {
+        if (!state.session || !state.session.token) {
+            throw new Error("Please sign in before loading policies.");
+        }
+
+        const response = await fetch(url, {
+            headers: {
+                "Authorization": `Bearer ${state.session.token}`
+            }
+        });
+
+        const payload = await readPayload(response);
+        if (response.status === 401 || response.status === 403) {
+            clearSession();
+            throw new Error("Your session expired or does not have access to policies. Please sign in again.");
+        }
+
+        if (!response.ok) {
+            throw new Error(extractErrorMessage(payload, "Request failed"));
+        }
+
+        return payload;
+    }
+
+    function updateSessionUi() {
+        const isLoggedIn = Boolean(state.session && state.session.token);
+
+        elements.authPanel.classList.toggle("hidden", isLoggedIn);
+        elements.explorerPanel.classList.toggle("hidden", !isLoggedIn);
+
+        if (!isLoggedIn) {
+            elements.sessionPill.innerHTML = "<strong>Signed out</strong>Use your JWT-enabled app account to browse policies.";
+            elements.filterSummary.textContent = "Sign in to load policies.";
+            renderEmptyState("Sign in to load available policy types from your MSSQL policy table.");
+            resetStatusDropdown();
+            populateSelect(elements.policyTypeSelect, [], "Sign in to load policy types");
+            elements.policyTypeSelect.disabled = true;
+            elements.refreshButton.disabled = true;
+            return;
+        }
+
+        const roles = state.session.roles.length > 0 ? state.session.roles.join(", ") : "No roles supplied";
+        elements.sessionPill.innerHTML = `<strong>${escapeHtml(state.session.username)}</strong>${escapeHtml(roles)}`;
+    }
+
+    function resetStatusDropdown() {
+        populateSelect(elements.policyStatusSelect, [], "Select a policy type first");
+        elements.policyStatusSelect.disabled = true;
+    }
+
+    function renderPolicyResults(policies, policyType, policyStatus) {
+        if (!Array.isArray(policies) || policies.length === 0) {
+            const filterLabel = policyStatus
+                ? `${policyType} / ${policyStatus}`
+                : `${policyType}`;
+            elements.filterSummary.textContent = `No policies found for ${filterLabel}.`;
+            renderEmptyState(`No policies matched <strong>${escapeHtml(filterLabel)}</strong>.`);
+            return;
+        }
+
+        const filterLabel = policyStatus
+            ? `${policyType} / ${policyStatus}`
+            : `${policyType} / all statuses`;
+
+        elements.filterSummary.textContent = `${policies.length} polic${policies.length === 1 ? "y" : "ies"} found for ${filterLabel}.`;
+
+        elements.results.innerHTML = policies.map((policy) => {
+            const statusDescription = policy.policyStatusDescription
+                ? `Status description: ${escapeHtml(policy.policyStatusDescription)}`
+                : "Expand this card to see more detail.";
+
+            return `
+                <article class="policy-card">
+                    <div class="policy-card__top">
+                        <div>
+                            <p class="policy-number">${escapeHtml(policy.policyNumber || "Policy")}</p>
+                            <h3>${escapeHtml(policy.customerName || "Unknown policy holder")}</h3>
+                            <p class="policy-subtitle">${statusDescription}</p>
+                        </div>
+                        <button
+                            class="ghost-button"
+                            type="button"
+                            data-action="toggle-details"
+                            data-policy-id="${escapeHtml(String(policy.id))}"
+                            data-expanded="false">
+                            Expand brief
+                        </button>
+                    </div>
+
+                    <div class="chip-row">
+                        <span class="chip type">${escapeHtml(policy.policyType || "Unknown type")}</span>
+                        <span class="chip status">${escapeHtml(policy.policyStatus || "Unknown status")}</span>
+                        <span class="chip meta">${escapeHtml(policy.policyAgency || "Agency not set")}</span>
+                    </div>
+
+                    <div class="summary-grid">
+                        ${renderSummaryItem("External number", policy.extPolicyNumber)}
+                        ${renderSummaryItem("NI number", policy.niNumber)}
+                        ${renderSummaryItem("Policy start", formatDate(policy.startDate))}
+                        ${renderSummaryItem("Renewal date", formatDate(policy.renewalDate))}
+                    </div>
+
+                    <div class="detail-panel" id="policy-detail-${escapeHtml(String(policy.id))}"></div>
+                </article>
+            `;
+        }).join("");
+    }
+
+    function renderSummaryItem(label, value) {
+        return `
+            <div class="summary-item">
+                <span>${escapeHtml(label)}</span>
+                <strong>${escapeHtml(value || "Not available")}</strong>
+            </div>
+        `;
+    }
+
+    function renderPolicyBrief(policy) {
+        const sections = [
+            {
+                title: "Policy overview",
+                fields: [
+                    ["Policy number", policy.policyNumber],
+                    ["External policy number", policy.extPolicyNumber],
+                    ["Policy type", policy.product],
+                    ["Policy status", policy.policyStatus],
+                    ["Status description", policy.polStatusDesc],
+                    ["Version", policy.version],
+                    ["Policy agency", policy.policyAgency],
+                    ["Group parent", policy.groupParent],
+                    ["Group child", policy.groupChild],
+                    ["Group child agency", policy.groupChildAgency]
+                ]
+            },
+            {
+                title: "Policy holder",
+                fields: [
+                    ["Full name", buildPersonName(policy)],
+                    ["NI number", policy.niNumber],
+                    ["Date of birth", formatDate(policy.dateOfBirth)],
+                    ["Sex", policy.sex],
+                    ["Self employed", policy.selfEmployed],
+                    ["Address", buildAddress(policy)]
+                ]
+            },
+            {
+                title: "Dates",
+                fields: [
+                    ["Policy start date", formatDate(policy.polStartDate)],
+                    ["Renewal date", formatDate(policy.renewalDate)],
+                    ["PR maturity date", formatDate(policy.prMaturityDate)],
+                    ["NPR maturity date", formatDate(policy.polNprMaturityDate)],
+                    ["PR original maturity date", formatDate(policy.prOrigMatDte)],
+                    ["NPR original maturity date", formatDate(policy.nprOrigMatDte)]
+                ]
+            },
+            {
+                title: "Payments and contributions",
+                fields: [
+                    ["Payment frequency", policy.paymentFreq],
+                    ["Payment method", policy.phPaymentMethod],
+                    ["Account number", policy.accountNumber],
+                    ["Sort code", policy.sortCode],
+                    ["Employee regular", formatDecimal(policy.employeeRegular)],
+                    ["Self-employed regular", formatDecimal(policy.selfEmpRegular)],
+                    ["Third party regular", formatDecimal(policy.thirdPartyRegular)],
+                    ["Personal single", formatDecimal(policy.personalSingle)],
+                    ["Employer regular", formatDecimal(policy.employerRegular)],
+                    ["Employer single", formatDecimal(policy.employerSingle)],
+                    ["Employer variable", formatDecimal(policy.employerVariable)],
+                    ["Transfer in", formatDecimal(policy.transferIn)],
+                    ["PR transfer in", formatDecimal(policy.prTransferIn)]
+                ]
+            },
+            {
+                title: "Policy features",
+                fields: [
+                    ["Protected rights", policy.protectedRights],
+                    ["Drawdown", policy.drawdown],
+                    ["Redirection", policy.redirection],
+                    ["PAF fund", policy.pafFund],
+                    ["WP fund", policy.wpFund],
+                    ["Non PAF WP fund", policy.nonPafWpFund],
+                    ["External fund", policy.externalFund],
+                    ["Switch processed", policy.switchProcessed],
+                    ["Auto switch processed", policy.autoswitchProcessed],
+                    ["Premium holiday started", policy.premiumHolidayStarted],
+                    ["Premium holiday ended", policy.premiumHolidayEnded]
+                ]
+            }
+        ];
+
+        const populatedSections = sections
+            .map((section) => ({
+                title: section.title,
+                fields: section.fields.filter(([, value]) => hasText(value))
+            }))
+            .filter((section) => section.fields.length > 0);
+
+        if (populatedSections.length === 0) {
+            return '<div class="empty-state">No additional policy details are available for this record.</div>';
+        }
+
+        return populatedSections.map((section) => `
+            <section class="detail-section">
+                <h4>${escapeHtml(section.title)}</h4>
+                <div class="detail-grid">
+                    ${section.fields.map(([label, value]) => `
+                        <div class="detail-item">
+                            <span>${escapeHtml(label)}</span>
+                            <strong>${escapeHtml(value)}</strong>
+                        </div>
+                    `).join("")}
+                </div>
+            </section>
+        `).join("");
+    }
+
+    function populateSelect(select, options, placeholder, includeBlankFirst = false) {
+        const values = Array.isArray(options) ? options : [];
+        const placeholderOption = `<option value="">${escapeHtml(placeholder)}</option>`;
+        const optionMarkup = values.map((value) => `
+            <option value="${escapeHtml(value)}">${escapeHtml(value)}</option>
+        `).join("");
+
+        select.innerHTML = includeBlankFirst ? placeholderOption + optionMarkup : placeholderOption + optionMarkup;
+        select.value = "";
+    }
+
+    function renderEmptyState(messageHtml) {
+        elements.results.innerHTML = `<div class="empty-state">${messageHtml}</div>`;
+    }
+
+    function setMessage(element, message, type) {
+        element.textContent = message;
+        element.className = `message visible ${type}`;
+    }
+
+    function clearMessage(element) {
+        element.textContent = "";
+        element.className = "message";
+    }
+
+    function setLoading(button, isLoading, label) {
+        button.disabled = isLoading;
+        button.textContent = label;
+    }
+
+    function readStoredSession() {
+        try {
+            const rawValue = window.localStorage.getItem("policyExplorerSession");
+            return rawValue ? JSON.parse(rawValue) : null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function storeSession(session) {
+        window.localStorage.setItem("policyExplorerSession", JSON.stringify(session));
+    }
+
+    function clearSession() {
+        state.session = null;
+        state.policyDetails.clear();
+        window.localStorage.removeItem("policyExplorerSession");
+        clearMessage(elements.explorerMessage);
+        updateSessionUi();
+    }
+
+    async function readPayload(response) {
+        const contentType = response.headers.get("content-type") || "";
+
+        if (contentType.includes("application/json")) {
+            return response.json();
+        }
+
+        const text = await response.text();
+        return text ? { message: text } : {};
+    }
+
+    function extractErrorMessage(payload, fallbackMessage) {
+        if (!payload) {
+            return fallbackMessage;
+        }
+
+        if (typeof payload === "string" && payload.trim()) {
+            return payload;
+        }
+
+        if (payload.message) {
+            return payload.message;
+        }
+
+        if (payload.details) {
+            return payload.details;
+        }
+
+        return fallbackMessage;
+    }
+
+    function buildPersonName(policy) {
+        return [policy.title, policy.foreName, policy.surName]
+            .filter(hasText)
+            .join(" ");
+    }
+
+    function buildAddress(policy) {
+        return [
+            policy.addressLine1,
+            policy.addressLine2,
+            policy.addressLine3,
+            policy.addressLine4,
+            policy.addressLine5,
+            policy.addressLine6,
+            policy.postCode
+        ].filter(hasText).join(", ");
+    }
+
+    function formatDate(value) {
+        if (!hasText(value)) {
+            return "";
+        }
+
+        const date = new Date(`${value}T00:00:00`);
+        if (Number.isNaN(date.getTime())) {
+            return value;
+        }
+
+        return new Intl.DateTimeFormat("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        }).format(date);
+    }
+
+    function formatDecimal(value) {
+        if (value === null || value === undefined || value === "") {
+            return "";
+        }
+
+        const numberValue = Number(value);
+        if (Number.isNaN(numberValue)) {
+            return String(value);
+        }
+
+        return new Intl.NumberFormat("en-GB", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(numberValue);
+    }
+
+    function hasText(value) {
+        return value !== null && value !== undefined && String(value).trim() !== "";
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+</script>
+</body>
+</html>
