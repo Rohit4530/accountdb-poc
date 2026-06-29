@@ -22,16 +22,18 @@ d1j6y0oytf2kht.cloudfront.net
 
 ## Screenshots
 
-Copy your screenshots into `docs/images/` so they render on GitHub, then open this README. After copying, the images will be referenced relatively as below.
+Below are the main UI screens for the PoC. Copy your screenshots into `docs/images/` so they render on GitHub.
+
+- **UI-1 — Login screen:** shows the login form where users enter `policyadmin` and the demo password.
+- **UI-2 — Dashboard / Policies list:** lists existing policies with quick actions (view/edit/delete).
+- **UI-3 — Policy details:** detailed view of a single policy including metadata and related records.
+- **UI-4 — Create / Edit policy:** form to add or update policy information and save changes.
 
 ![UI-1](docs/images/UI-1.png)
 ![UI-2](docs/images/UI-2.png)
 ![UI-3](docs/images/UI-3.png)
 ![UI-4](docs/images/UI-4.png)
 
-## Notes
 
-- I created `docs/images/` in the repo; please copy `C:\Users\rohit\Pictures\snipping\UI-1.png` etc. into `docs/images/` so the images display in GitHub.
-- If you want, I can copy the images into the repo for you (I can't move local binary files automatically from outside the workspace). Let me know and I'll guide you with the exact commands.
 
 
